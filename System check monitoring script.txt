@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Define threshold values
+CPU_THRESHOLD=80
+MEMORY_THRESHOLD=80
+DISK_THRESHOLD=80
+LOG_FILE="/var/log/system_health_monitor.log"
+
+# Function to log messages
+log_message() {
+  local message="$1"
+  echo "$(date "+%Y-%m-%d %H:%M:%S") - $message" >> $LOG_FILE
+  echo "$message"
+}
+
+# Check CPU usage
+check_cpu_usage() {
+  CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+  
+  if (( $(echo "$CPU_USAGE > $CPU_THRESHOLD" | bc -l) )); then
+    log_message "CPU usage is high: ${CPU_USAGE}% (Threshold: ${CPU_THRESHOLD}%)"
+  else
+    log_message "CPU usage is normal: ${CPU_USAGE}%"
+  fi
+}
+
+# Check Memory usage
+check_memory_usage() {
+  MEMORY_USAGE=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+  
+  if (( $(echo "$MEMORY_USAGE > $MEMORY_THRESHOLD" | bc -l) )); then
+    log_message "Memory usage is high: ${MEMORY_USAGE}% (Threshold: ${MEMORY_THRESHOLD}%)"
+  else
+    log_message "Memory usage is normal: ${MEMORY_USAGE}%"
+  fi
+}
+
+# Check Disk usage
+check_disk_usage() {
+  DISK_USAGE=$(df / | grep / | awk '{print $5}' | sed 's/%//g')
+  
+  if [ "$DISK_USAGE" -gt "$DISK_THRESHOLD" ]; then
+    log_message "Disk usage is high: ${DISK_USAGE}% (Threshold: ${DISK_THRESHOLD}%)"
+  else
+    log_message "Disk usage is normal: ${DISK_USAGE}%"
+  fi
+}
+
+# Check running processes
+check_running_processes() {
+  TOP_PROCESSES=$(ps aux --sort=-%mem | head -n 6)
+  log_message "Top 5 running processes by memory usage:"
+  echo "$TOP_PROCESSES" | while read line; do
+    log_message "$line"
+  done
+}
+
+# Run the health checks
+log_message "Starting system health check..."
+check_cpu_usage
+check_memory_usage
+check_disk_usage
+check_running_processes
+log_message "System health check completed."
+

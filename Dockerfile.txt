@@ -1,0 +1,18 @@
+FROM node: 16
+
+WORKDIR /app
+
+#Copy files
+COPY package*.json ./
+
+#Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# expose the application
+EXPOSE 3000
+
+#start
+CMD ["npm" , "start"]

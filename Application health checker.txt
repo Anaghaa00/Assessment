@@ -1,0 +1,24 @@
+import requests
+
+# Function to check the status of the application
+def check_application_status(url):
+    try:
+        # Send a GET request to the URL
+        response = requests.get(url)
+        
+        # Check the HTTP status code
+        if response.status_code == 200:
+            print("Application is UP and functioning correctly!")
+        else:
+            print(f"Application is DOWN. HTTP Status Code: {response.status_code}")
+    
+    except requests.exceptions.RequestException as e:
+        # Catch any network errors or exceptions
+        print(f"Error: Unable to reach the application. {e}")
+
+if __name__ == "__main__":
+    # Specify the application URL
+    url = "http://your-application-url.com"  # Replace with your application's URL
+    
+    # Check the status of the application
+    check_application_status(url)
